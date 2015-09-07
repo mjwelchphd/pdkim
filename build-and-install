@@ -1,0 +1,30 @@
+# Build the PDKIM library
+cd src
+make -f Makefile.unix
+rm ../ext/pdkim/lib/libpdkim1.a
+mv libpdkim1.a ../ext/pdkim/lib/libpdkim1.a
+rm libpdkim1.so.0
+cd ..
+
+# Build the Ruby C extension
+cd ext/pdkim
+ruby extconf.rb
+make
+rm pdkimglue.o
+cd ../..
+
+# Build and install the gem
+gem build pdkim-gemspec
+sudo gem install pdkim-0.1-x86_64-linux.gem
+
+# test the gem by running the installed test program
+pdkimgemtest
+
+# Other useful commands
+#git remote add origin https://github.com/mjwelchphd/pdkim.git
+#git push -u origin master
+#gem push pdkim-0.1-x86_64-linux.gem
+
+
+#git@github.com:mjwelchphd/pdkim.git
+
