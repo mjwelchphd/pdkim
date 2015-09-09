@@ -1,4 +1,4 @@
-#! /usr/bin/ruby
+#! /usr/bin/env ruby
 require 'pdkim'
 
 RSA_PRIVKEY = <<EOT
@@ -82,7 +82,8 @@ class PdkimTest
     puts "------------------------------------------------------------"
     puts email
     puts
-    verify_counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, email, :domain_lookup)
+    verify_counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, email, :fake_domain_lookup)
+#    verify_counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, email)
     puts "------------------------------------------------------------"
     puts "---- The verification counts of the DKIM headers:          -"
     puts "---- The count of PDKIM_VERIFY_NONE:       %d               -"%verify_counts[0]
@@ -93,9 +94,10 @@ class PdkimTest
     puts
   end
   
-  def domain_lookup(name)
+  def fake_domain_lookup(name)
     DNS_TEST_RECORD.join("")
   end
+  
 end
 
 PdkimTest.new.test2

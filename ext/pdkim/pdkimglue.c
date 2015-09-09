@@ -27,6 +27,8 @@ static int query_dns_text(char *name, char *answer) {
    * the private key on the domain's webite, but Ruby uses a block on the
    * 'pdkim_init_verify' call. This method is another glue routine. */
   VALUE rb_answer = rb_funcall(pdkim_request_public_key, rb_intern("call"), 1, rb_str_new2(name));
+  if (NIL_P(rb_answer))
+    return PDKIM_ERR_RSA_PRIVKEY;
   strcpy(answer,StringValueCStr(rb_answer));
   return PDKIM_OK;
 }

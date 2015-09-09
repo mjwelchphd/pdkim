@@ -1,3 +1,4 @@
+require 'resolv'
 require_relative '../ext/pdkim/pdkimglue'
 
 module PDKIM
@@ -230,7 +231,7 @@ module PDKIM
     return email
   end
 
-  def pdkim_verify_an_email(mode, email, sym_domain_lookup)
+  def pdkim_verify_an_email(mode, email, sym_domain_lookup=:pdkim_dkim_public_key_lookup)
     ctx = pdkim_init_verify(mode) do |name|
       send(sym_domain_lookup, name)
     end
@@ -243,4 +244,11 @@ module PDKIM
     pdkim_free_ctx(ctx)
     return verify_counts
   end
+
+  def pdkim_dkim_public_key_lookup(name)
+    records = [];
+    Resolv::DNS.open { |dns| records = dns.getresources(name, Resolv::DNS::Resource::IN::TXT) }
+    ret = (if records.empty? then nil else records[0].strings[0] end)
+  end
+
 end
