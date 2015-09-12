@@ -23,17 +23,22 @@ DOMAIN = "duncanthrax.net"
 SELECTOR = "cheezburger"
 
 TEST_MESSAGE = [
-  "From: Tom Kistner <tom@duncanthrax.net>\r\n",
-  "X-Folded-Header: line one\r\n",
-  "\tline two\r\n",
-  "To: PDKIM User\r\n",
-  "Subject: PDKIM Test\r\n",
-  "\r\n",
-  "Test 1, 2, 3, 4\r\n",
-  "This is a simple test of Ruby PDKIM.\r\n"
+  "From: Tom Kistner <tom@duncanthrax.net>",
+  "X-Folded-Header: line one",
+  "\tline two",
+  "To: PDKIM User",
+  "Subject: PDKIM Test",
+  "",
+  "Test 1, 2, 3, 4",
+  "This is a simple test of Ruby PDKIM."
 ]
 
-# A DKIM public key record, as it usually resides in a DNS TXT record
+# the dkim header expected from this message is:
+#DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple; d=duncanthrax.net; s=cheezburger;
+#	h=Subject:To:From; bh=+oeSNE7b9Ka6Gdh9ItFGX3J6Wacjc/JxAUaId7ON0T0=;
+#	b=Ap6DcX3x2MEoj1E3KBow7NF/2g5CnUoqkt0hgqJ0DufuOsFAPLl0tYA+yYIoCp8Acn/BJkjVYY+WQ7mlSUJfrZEZYIq1P+BZgBdP+Z+g3vrK2zEJchvwpnP0+xKniIktxT2WRQOoH3HBb/5Z1AhtuNfPEoE+kZN22Gksto4bqdg=;
+
+# A DKIM public key record, as it usually resides in a DNS TXT record (the lines can be run together--this is neat-nik format):
 DNS_TEST_RECORD = [
   "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB",
   "gQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cp",
@@ -46,58 +51,81 @@ class PdkimTest
 
   include PDKIM
 
+  def main
+    puts
+    puts
+    email = test1
+    puts
+    puts
+    test2(email)
+    puts
+  end
+
+  def display(name, unsigned_message, signed_message, counts)
+    puts name.upcase
+    puts "------------------------------------------------------------"
+    puts "---- The raw test email.                                   -"
+    puts "------------------------------------------------------------"
+    puts unsigned_message.join(CRLF)+CRLF
+    puts "------------------------------------------------------------"
+    puts
+    puts "------------------------------------------------------------"
+    puts "---- The test email after signing.                         -"
+    puts "------------------------------------------------------------"
+    puts signed_message.join(CRLF)+CRLF
+    puts "------------------------------------------------------------"
+    puts
+    puts "------------------------------------------------------------"
+    puts "---- The verification counts of the DKIM headers:          -"
+    puts "------------------------------------------------------------"
+    puts "The count of PDKIM_VERIFY_NONE:       %d"%counts[0]
+    puts "The count of PDKIM_VERIFY_INVALID:    %d"%counts[1]
+    puts "The count of PDKIM_VERIFY_FAIL:       %d"%counts[2]
+    puts "The count of PDKIM_VERIFY_PASS:       %d"%counts[3]
+    puts "------------------------------------------------------------"
+  end
+
   def test1
+    # ---------- SIGN ----------
     ctx = pdkim_init_sign(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVKEY)
-    ok = pdkim_set_debug_stream(ctx, 2) # 2 --> STDERR
+#    ok = pdkim_set_debug_stream(ctx, 2) # 2 --> STDERR
     ok = pdkim_set_optional(ctx, nil, nil, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, -1, PDKIM_ALGO_RSA_SHA256, 0, 0)
     TEST_MESSAGE.each do |line| 
-      ok = pdkim_feed(ctx, line, line.length+2)
+      ok = pdkim_feed(ctx, line+CRLF, line.length+2)
     end
-    pdkim_signatures = pdkim_feed_finish(ctx)
-    
-    #there's only ever 1 signature after sign
-    email = pdkim_signatures[0][:signature] + CRLF + TEST_MESSAGE.join("")
+    signatures = pdkim_feed_finish(ctx)
+    signed_message = [signatures[0][:signature]]
+    signed_message.concat(TEST_MESSAGE)
+    pdkim_free_ctx(ctx)
 
+    # --------- VERIFY ---------
     # the block on this call is mandatory, and handles the DNS lookup
     # to get the domain's public key
     ctx = pdkim_init_verify(PDKIM_INPUT_NORMAL) do |name|
       DNS_TEST_RECORD.join("") # return 'answer'
     end
-
-    ok = pdkim_feed(ctx, email, email.length)
-    pdkim_signatures = pdkim_feed_finish(ctx)
-    puts pdkim_signatures.inspect
+    signed_message.each do |line|
+      ok = pdkim_feed(ctx, line+CRLF, line.length+2)
+    end
+    signatures = pdkim_feed_finish(ctx)
+    counts = [0, 0, 0, 0]
+    signatures.each do |signature|
+      counts[signature[:verify_status]] += 1
+    end
     pdkim_free_ctx(ctx)
+    display("TEST1", TEST_MESSAGE, signed_message, counts)
   end
 
-  def test2
-    puts "------------------------------------------------------------"
-    puts "---- The raw test email.                                   -"
-    puts "------------------------------------------------------------"
-    puts TEST_MESSAGE.join("")
-    email = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVKEY, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, TEST_MESSAGE)
-    puts
-    puts "------------------------------------------------------------"
-    puts "---- The test email after signing.                         -"
-    puts "------------------------------------------------------------"
-    puts email
-    puts
-    verify_counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, email, :fake_domain_lookup)
-#    verify_counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, email)
-    puts "------------------------------------------------------------"
-    puts "---- The verification counts of the DKIM headers:          -"
-    puts "---- The count of PDKIM_VERIFY_NONE:       %d               -"%verify_counts[0]
-    puts "---- The count of PDKIM_VERIFY_INVALID:    %d               -"%verify_counts[1]
-    puts "---- The count of PDKIM_VERIFY_FAIL:       %d               -"%verify_counts[2]
-    puts "---- The count of PDKIM_VERIFY_PASS:       %d               -"%verify_counts[3]
-    puts "------------------------------------------------------------"
-    puts
+  def test2(signed_message)
+    ok, signed_message = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVKEY, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, TEST_MESSAGE)
+    ok, counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message, :fake_domain_lookup)
+    display("TEST2", TEST_MESSAGE, signed_message, counts)
   end
   
   def fake_domain_lookup(name)
     DNS_TEST_RECORD.join("")
   end
-  
+
 end
 
-PdkimTest.new.test2
+PdkimTest.new.main

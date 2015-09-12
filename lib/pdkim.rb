@@ -18,15 +18,25 @@ module PDKIM
   #
   #    domain
   #      The domain to sign as. This value will land in the
-  #      d= tag of the signature.
+  #      d= tag of the signature. For example, if the MAIL FROM
+  #      address is joe@mail.example.com, the domain is
+  #      example.com.
   #
   #    selector
   #      The selector string to use. This value will land in
-  #      the s= tag of the signature.
+  #      the s= tag of the signature. For example, if the DNS DKIM TXT
+  #      record contains 2015may._domainkey.example.com, the selector
+  #      is 2015may.
   #
   #    rsa_privkey
   #      The private RSA key, in ASCII armor. It MUST NOT be
-  #      encrypted.
+  #      encrypted. For example, in the sample used for this gem,
+  #      the private key is: RSA_PRIVKEY:
+  #      -----BEGIN RSA PRIVATE KEY-----
+  #      MIICXQIBAAKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb
+  #      ...
+  #      FA0nM8cHuN/VLKjjcrJUK47lZEOsjLv+qTl0i0Lp6giq
+  #      -----END RSA PRIVATE KEY-----
   #
   # Returns: A freshly allocated ctx (context)
   #
@@ -46,9 +56,19 @@ module PDKIM
   #      dot is received (Excess input will simply be ignored).
   #
   #    block
-  #      The lib does not include a DNS resolver, so you need
-  #      to provide that yourself. If you develop an application
-  #      that deals with email, you'll probably have something anyway.
+  #      Tom's pdkim lib does not include a DNS resolver, so one
+  #      has been provided in this gem called "pdkim_dkim_public_key_lookup(name)."
+  #      You may provide some other mechanism, however. This call, then, would be:
+  #
+  #      ctx = pdkim_init_verify(mode) do |name|
+  #        pdkim_dkim_public_key_lookup(name)
+  #      end
+  #
+  #      NOTE: Although the block is on this call to pdkim_init_verify,
+  #      the ACTUAL callbacks are made from pdkim_feed_finish as the
+  #      DKIM signatures (there can be many) are being validated one by
+  #      one. As each signature will have a different domain, a callback
+  #      is used to do the lookup.
   #
   # Returns: A freshly allocated ctx (context)
   #
@@ -64,10 +84,19 @@ module PDKIM
   #
   # Set up debugging stream.
   #
-  # When PDKIM was compiled with DEBUG defined (which is the
+  # When pdkim.c was compiled with DEBUG defined (which is the
   # recommended default), you can set up a stream where it
   # sends debug output to. If you don't set a debug
   # stream, no debug output is generated.
+  #    file_name
+  #      If the first option is called, a file by the name
+  #      file_name is opened, and debugging output is APPENDED to it.
+  #      Ex: pdkim_set_debug_stream(ctx, "my_debug_log")
+  #
+  #    file_number
+  #      If the second option is choosen, a file by the number
+  #      file_number is opened, and debugging output is APPENDED to it.
+  #      Ex: pdkim_set_debug_stream(ctx, 2) # STDERR
   #
   # Returns: nil
   #
@@ -142,7 +171,7 @@ module PDKIM
   #    data (Ruby String which is also allowed to contain binary)
   #      Pointer to data to feed. Please note that despite
   #      the example given below, this is not necessarily a
-  #      C string.
+  #      C string, i.e., NULL terminated.
   #
   #    data_len
   #      Length of data being fed, in bytes.
@@ -157,53 +186,58 @@ module PDKIM
   #
   # Signal end-of-message and retrieve the signature block.
   #
-  #    pdkim_signature **signature
-  #      Pass in a pointer to a pdkim_signature pointer.
+  # Returns:
+  #    ok
+  #      0 (PDKIM_OK) for success or a PDKIM_ERR_* constant
+  #
+  #    pdkim_signature (A array of hashes of signatures.)
   #      If the function returns PDKIM_OK, it will be set
   #      up to point to a freshly allocated pdkim_signature
   #      block. See pdkim.h for documentation on what that
   #      block contains. Hint: Most implementations will
   #      simply want to retrieve a ready-to-use
   #      DKIM-Signature header, which can be found in
-  #      *signature->signature_header. See the code below.
+  #      *signature->signature_header.
   #
-  # Returns: An array of hashes (only 1 for sign) with the signatures in them
+  #      Sign only returns 1 signature, but vaerify will return 1 signature
+  #      for each DKIM header in the email being verified.
   #
-  #[
-  #  {
-  #    "error"=>0, # 0 (PDKIM_OK) for success or a PDKIM_ERR_* constant
-  #    "signature"=>nil,
-  #    "version"=>1,
-  #    "algo"=>0,
-  #    "canon_headers"=>0,
-  #    "canon_body"=>0,
-  #    "querymethod"=>0,
-  #    "selector"=>"cheezburger",
-  #    "domain"=>"duncanthrax.net",
-  #    "identity"=>nil,
-  #    "created"=>0,
-  #    "expires"=>0,
-  #    "bodylength"=>-1,
-  #    "headernames"=>"Subject:To:From",
-  #    "copiedheaders"=>nil,
-  #    "sigdata"=>"\xA1\xEDy\x16\xDF\xF1\xF8C\x18\x80\xF8\x1F@\xFCIV&\x0E\xA4\xD5 ...",
-  #    "bodyhash"=>"M\x87\xE3_\xE5;T\xD4\x96\x90'I\xEA2\xBF\xCE\x8F\x17\xCD\xEF ...",
-  #    "signature_header"=>nil,
-  #    "verify_status"=>3,
-  #    "verify_ext_status"=>0,
-  #    "pubkey"=>{
-  #      "version"=>"DKIM1",
-  #      "granularity"=>"*",
-  #      "hashes"=>nil,
-  #      "keytype"=>"rsa",
-  #      "srvtype"=>"*",
-  #      "notes"=>nil,
-  #      "key"=>"0\x81\x9F0\r\x06\t*\x86H\x86\xF7\r\x01\x01\x01\x05\x00\x03\x81\x8D ...",
-  #      "testing"=>0,
-  #      "no_subdomaining"=>0
-  #    }
-  #  }
-  #]
+  #      Returns an array of hashes (only 1 for sign) with the signatures in them
+  #      [
+  #        {
+  #          "error"=>0, # 0 (PDKIM_OK) for success or a PDKIM_ERR_* constant
+  #          "signature"=>nil,
+  #          "version"=>1,
+  #          "algo"=>0,
+  #          "canon_headers"=>0,
+  #          "canon_body"=>0,
+  #          "querymethod"=>0,
+  #          "selector"=>"cheezburger",
+  #          "domain"=>"duncanthrax.net",
+  #          "identity"=>nil,
+  #          "created"=>0,
+  #          "expires"=>0,
+  #          "bodylength"=>-1,
+  #          "headernames"=>"Subject:To:From",
+  #          "copiedheaders"=>nil,
+  #          "sigdata"=>"\xA1\xEDy\x16\xDF\xF1\xF8C\x18\x80\xF8\x1F@\xFCIV&\x0E\xA4\xD5 ...",
+  #          "bodyhash"=>"M\x87\xE3_\xE5;T\xD4\x96\x90'I\xEA2\xBF\xCE\x8F\x17\xCD\xEF ...",
+  #          "signature_header"=>nil,
+  #          "verify_status"=>3,
+  #          "verify_ext_status"=>0,
+  #          "pubkey"=>{
+  #            "version"=>"DKIM1",
+  #            "granularity"=>"*",
+  #            "hashes"=>nil,
+  #            "keytype"=>"rsa",
+  #            "srvtype"=>"*",
+  #            "notes"=>nil,
+  #            "key"=>"0\x81\x9F0\r\x06\t*\x86H\x86\xF7\r\x01\x01\x01\x05\x00\x03\x81\x8D ...",
+  #            "testing"=>0,
+  #            "no_subdomaining"=>0
+  #          }
+  #        }
+  #      ]
   def pdkim_feed_finish(ctx)
     ruby_pdkim_feed_finish(ctx)
   end
@@ -219,31 +253,139 @@ module PDKIM
     ruby_pdkim_free_ctx(ctx)
   end
 
-  def pdkim_sign_an_email(mode, domain, selector, rsa_privkey, canon_headers, canon_body, message)
+  # ok = pdkim_sign_an_email(mode, domain, selector, rsa_privkey, canon_headers, canon_body, unsigned_message)
+  #
+  # Call a single function to sign an email message.
+  #
+  #    mode
+  #      PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
+  #      input is used, the lib will deflate double-dots at
+  #      the start of atline to a single dot, and it will
+  #      stop processing input when a line with and single
+  #      dot is received (Excess input will simply be ignored).
+  #
+  #    domain
+  #      The domain to sign as. This value will land in the
+  #      d= tag of the signature. For example, if the MAIL FROM
+  #      address is joe@mail.example.com, the domain is
+  #      example.com.
+  #
+  #    selector
+  #      The selector string to use. This value will land in
+  #      the s= tag of the signature. For example, if the DNS DKIM TXT
+  #      record contains 2015may._domainkey.example.com, the selector
+  #      is 2015may.
+  #
+  #    rsa_privkey
+  #      The private RSA key, in ASCII armor. It MUST NOT be
+  #      encrypted. For example, in the sample used for this gem,
+  #      the private key is: RSA_PRIVKEY:
+  #      -----BEGIN RSA PRIVATE KEY-----
+  #      MIICXQIBAAKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb
+  #      ...
+  #      FA0nM8cHuN/VLKjjcrJUK47lZEOsjLv+qTl0i0Lp6giq
+  #      -----END RSA PRIVATE KEY-----
+  #
+  #    canon_headers (default PDKIM_CANON_SIMPLE)
+  #      Canonicalization algorithm to use for headers. One
+  #      of PDKIM_CANON_SIMPLE or PDKIM_CANON_RELAXED.
+  #
+  #    canon_body (default PDKIM_CANON_SIMPLE)
+  #      Canonicalization algorithm to use for the body. One
+  #      of PDKIM_CANON_SIMPLE or PDKIM_CANON_RELAXED.
+  #
+  #    unsigned_message
+  #      An array of lines containing the email. The message
+  #      data array MUST NOT use CRLF line endings, but each line
+  #      is assumed to end with a CRLF (like SMTP uses on the
+  #      wire). The lines may be of arbitrary length. A line oriented
+  #      format was chosen because it's the "natural" way
+  #      of formatting the data for Ruby.
+  #
+  # Returns: an array of 2 elements: [success_code, message]
+  #     if successful, returns 0 (PDKIM_OK) and the signed_message
+  #     if unsuccessful, returns a PDKIM_ERR_* constant and nil
+  #
+  def pdkim_sign_an_email(mode, domain, selector, rsa_privkey, canon_headers, canon_body, unsigned_message)
     ctx = pdkim_init_sign(mode, domain, selector, rsa_privkey)
+    return [PDKIM_FAIL, verify_counts] if ctx==0
     ok = pdkim_set_optional(ctx, nil, nil, canon_headers, canon_body, -1, PDKIM_ALGO_RSA_SHA256, 0, 0)
-    message.each do |line| 
-      ok = pdkim_feed(ctx, line, line.length)
+    if ok!=PDKIM_OK
+      pdkim_free_ctx(ctx)
+      return [ok, nil]
+    end
+    unsigned_message.each do |line|
+      ok = pdkim_feed(ctx, line+CRLF, line.length+2)
+      if ok!=PDKIM_OK
+        pdkim_free_ctx(ctx)
+        return [ok, nil]
+      end
     end
     signatures = pdkim_feed_finish(ctx)
-    email = signatures[0][:signature] + CRLF + message.join("")
     pdkim_free_ctx(ctx)
-    return email
+    return [PDKIM_ERR_RSA_SIGNING, nil] if signatures.empty?
+    signature = signatures[0][:signature]
+    signed_message = [signature]
+    signed_message.concat(unsigned_message)
+    return [PDKIM_OK, signed_message]
   end
 
-  def pdkim_verify_an_email(mode, email, sym_domain_lookup=:pdkim_dkim_public_key_lookup)
+  # ok = verify_an_email(mode, signed_message, sym_domain_lookup)
+  #
+  # Call a single function to sign an email message.
+  #
+  #    mode
+  #      PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
+  #      input is used, the lib will deflate double-dots at
+  #      the start of atline to a single dot, and it will
+  #      stop processing input when a line with and single
+  #      dot is received (Excess input will simply be ignored).
+  #
+  #    signed_message
+  #      An array of lines containing the email preceeded by a
+  #      DKIM header that was generated by a signing process. The message
+  #      data array MUST NOT contain CRLF line endings, but each line
+  #      is assumed to end with a CRLF (like SMTP uses on the
+  #      wire). The lines may be of arbitrary length. A line oriented
+  #      format was chosen because it's the "natural" way
+  #      of formatting the data for Ruby.
+  #
+  def pdkim_verify_an_email(mode, signed_message, sym_domain_lookup=:pdkim_dkim_public_key_lookup)
+    verify_counts = [0, 0, 0, 0]
     ctx = pdkim_init_verify(mode) do |name|
       send(sym_domain_lookup, name)
     end
-    ok = pdkim_feed(ctx, email, email.length)
+    return [PDKIM_FAIL, verify_counts] if ctx==0
+    ok = PDKIM_FAIL
+    signed_message.each do |line|
+      ok = pdkim_feed(ctx, line+CRLF, line.length+2)
+      if ok!=PDKIM_OK
+        pdkim_free_ctx(ctx)
+        return [ok, verify_counts]
+      end
+    end
     signatures = pdkim_feed_finish(ctx)
     verify_counts = [0, 0, 0, 0]
     signatures.each do |signature|
       verify_counts[signature[:verify_status]] += 1
     end
     pdkim_free_ctx(ctx)
-    return verify_counts
+    return ok, verify_counts
   end
+
+  # key = pdkim_dkim_public_key_lookup(name)
+  #
+  # This method retrieves the public key from the domain's
+  # website's DNS records, if any. If it fails, it will return
+  # "nil" which will cause the validation to fail with 
+  # PDKIM_VERIFY_FAIL.
+  #
+  #    name
+  #      The name to be looked up by the resolver. It has the form:
+  #      selector._domainkey.domain.com (org, biz, us, gov, etc.)
+  #      the name will be properly formatted if this method is
+  #      called from the block in pdkim_init_verify.
+  #
 
   def pdkim_dkim_public_key_lookup(name)
     records = [];
