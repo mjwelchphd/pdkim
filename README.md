@@ -1,16 +1,16 @@
 # pdkim
 
 
-GENERAL
+#GENERAL
 --------------------------------------------------------------------------------
 
 PDKIM - a RFC4871 (DKIM) implementation
 http://duncanthrax.net/pdkim/
-Copyright (C) 2009      Tom Kistner <tom@duncanthrax.net>
+Copyright (C) 2009  Tom Kistner <tom@duncanthrax.net>
 
 Includes code from the PolarSSL project.
 http://polarssl.org
-Copyright (C) 2009      Paul Bakker <polarssl_maintainer@polarssl.org>
+Copyright (C) 2009  Paul Bakker <polarssl_maintainer@polarssl.org>
 Copyright (C) 2006-2008 Christophe Devine
 
 This gem (C) 2015 Michael J. Welch, Ph.D. <mjwelchphd@gmail.com>
@@ -60,34 +60,32 @@ The library implements all the calls needed to sign emails and verify signatures
 HOW DOES DKIM WORK?
 --------------------------------------------------------------------------------
 The gem accepts an array of lines that form an email, and add a DKIM "signature." For example, a simple email may look like this:
-+------------------------------------------------------------------------------+
-| From: Tom Kistner <tom@duncanthrax.net>cr><lf>                               |
-| X-Folded-Header: line onecr><lf>                                             |
-| line twocr><lf>                                                              |
-| To: PDKIMcr><lf>                                                             |
-| Subject: PDKIM Testcr><lf>                                                   |
-| cr><lf>                                                                      |
-| Test 3,4cr><lf>                                                              |
-| Heute bug ich, morgen fix ich.cr><lf>                                        |
-+------------------------------------------------------------------------------+
+```smtp
+From: Tom Kistner <tom@duncanthrax.net>cr><lf>
+X-Folded-Header: line onecr><lf>
+line twocr><lf>
+To: PDKIMcr><lf>
+Subject: PDKIM Testcr><lf>
+cr><lf>
+Test 3,4cr><lf>
+Heute bug ich, morgen fix ich.cr><lf>
+```
 
 After the signing method is called, a DKIM header is added to the email, preceeding the part of the email that is being signed. The result may look something like this:
-+------------------------------------------------------------------------------+
-| DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple;cr><lf>        |
-| d=duncanthrax.net; s=cheezburger; h=Subject:To:From;cr><lf>                  |
-| bh=TYfjX+U7VNSWkCdJ6jK/zo8Xze+WTNzPpy5l/ra8X+c=;cr><lf>                      |
-|	b=oe15Ft/x+EMYgPgfQPxJViYOpNUd3GHPVWq4LmHFIBsm5bokL5TPLWaG7X3iX8ALY91bdag2FI |
-| hsLVdNIg9ZDHvtnHYZmcl9r76n0JJG/XszO8iH6vWjZ9smjPDQuDHT8NB5UOUl2S6/M5+6dzdkbA |
-| wcrQ5W/cKsl/PYzofzVhA=;cr><lf>                                               |
-| From: Tom Kistner <tom@duncanthrax.net>cr><lf>                               |
-| X-Folded-Header: line onecr><lf>                                             |
-| line twocr><lf>                                                              |
-| To: PDKIMcr><lf>                                                             |
-| Subject: PDKIM Testcr><lf>                                                   |
-| cr><lf>                                                                      |
-| Test 3,4cr><lf>                                                              |
-| Heute bug ich, morgen fix ich.cr><lf>                                        |
-+------------------------------------------------------------------------------+
+```smtp
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple;cr><lf>
+d=duncanthrax.net; s=cheezburger; h=Subject:To:From;cr><lf>
+	bh=TYfjX+U7VNSWkCdJ6jK/zo8Xze+WTNzPpy5l/ra8X+c=;cr><lf>
+b=oe15Ft/x+EMYgPgfQPxJViYOpNUd3GHPVWq4LmHFIBsm5bokL5TPLWaG7X3iX8ALY91bdag2FIhsLVdNIg9ZDHvtnHYZmcl9r76n0JJG/XszO8iH6vWjZ9smjPDQuDHT8NB5UOUl2S6/M5+6dzdkbAwcrQ5W/cKsl/PYzofzVhA=;cr><lf>
+From: Tom Kistner <tom@duncanthrax.net>cr><lf>
+X-Folded-Header: line onecr><lf>
+line twocr><lf>
+To: PDKIMcr><lf>
+Subject: PDKIM Testcr><lf>
+cr><lf>
+Test 3,4cr><lf>
+Heute bug ich, morgen fix ich.cr><lf>
+```
 
 The Ruby gem stores the messages as an array of lines, with the <cr><lf> (hereafter CRLF) removed. The CRLF is added back when the message is reconstituted. Note that CRLF is a constant defined by this gem.
 
