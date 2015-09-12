@@ -167,6 +167,8 @@ selector = "cheezburger"
 ```
 DKIM keys are stored on the sending server's DNS under the name ```selector._domainkey.domain.top-level-domain```. For example, DKIM looks for a public key for the test data above in the server's DNS TXT records with a name ```cheezburger._domainkey.duncanthrax.net```. A recommended practice is to rotate selectors by creating new ones and deleting old ones (once enough time has gone by for all the email signed with old selectors will have been verified). Google creates selectors like ```20120113```, i.e., date related.
 
+For an example of how to set up a production mail server, see ```https://community.rackspace.com/developers/f/7/t/3449```.
+
 
 ##HOW DO I GENERATE THE DKIM KEYS WITH OPENSSL?
 The easiest way to create a set of DKIM keys is using OpenSSL in 7 easy steps as follows:
@@ -251,7 +253,7 @@ That's the complete signing cycle.
 ##HOW DO I VERIFY AN EMAIL THE LONG WAY?
 The verify process is similar to the signing process. Initialize, feed, finish, and pick up the results.
 
-The first call serves to initialize the verifying process, and pass one choice to the initialization method. Also, the block on this call is required because PDKIM uses it to resolve public key requests for each of the signatures in the message (there may be more than one). Here we ignore the name (which in this case is "cheezburger.\_domainkey.duncanthrax.com", i.e., ready to be looked up with "pdkim\_dkim\_public\_key\_lookup(name)") and just return our test data because we know we only have one signiture in the test message.
+The first call serves to initialize the verifying process, and pass one choice to the initialization method. Also, the block on this call is required because PDKIM uses it to resolve public key requests for each of the signatures in the message (there may be more than one). Here we ignore the name (which in this case is "cheezburger.\_domainkey.duncanthrax.com", i.e., ready to be looked up with "pdkim\_dkim\_public\_key\_lookup(name)") and just return our test data because we know we only have one signature in the test message.
 ```ruby
 ctx = pdkim_init_verify(PDKIM_INPUT_NORMAL) do |name|
   rsa_public_key
@@ -263,7 +265,7 @@ ctx = pdkim_init_verify(PDKIM_INPUT_NORMAL) do |name|
   pdkim_dkim_public_key_lookup(name)
 end
 ```
-but you can substitute your own resolver for this task, if you wish. If the resolver can't retrieve the public key from the domain's DNS records, it returns nil, and that causes the "pdkim_feed_finish(ctx)" call to return the signature with PDKIM_VERIFY_FAIL.
+but you can substitute your own resolver for this task, if you wish. If the resolver can't retrieve the public key from the domain's DNS records, it returns nil, and that causes the ```pdkim_feed_finish(ctx)``` call to return the signature with PDKIM_VERIFY_FAIL.
 
 When you call the one-line verify call (which will be explained soon), it defaults to the code above.
 
@@ -274,7 +276,7 @@ message.each { |line|
   (handle error) if ok != PDKIM_OK
 end
 ```
-Verifying may produce multiple signatures because it produces one signature for each signature in the message. The third call verifies and retrieves the signature:
+Verifying may produce multiple signatures because it produces one signature for each signature in the message. The third call verifies and retrieves the signatures:
 ```ruby
 ok, signatures = pdkim_feed_finish(ctx)
 (handle error) if ok!=PDKIM_OK
@@ -287,7 +289,7 @@ or better yet (you'll need to install the pretty_inspect gem),
 ```ruby
 puts signatures.pretty_inspect
 ```
-NOTE: This is when the call backs to the block in "pdkim_init_verify" will
+NOTE: This is when the callbacks to the block in ```pdkim_init_verify``` will
   be made, once per DKIM signature in the message.
 
 The return status will be found in each signature in:
@@ -308,8 +310,8 @@ The signing and verifying procedures are reduced to one line each. Ya, usually t
 
 To sign a message, call:
 ```ruby
-  ok, signed_message = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, \
-    rsa_private_key, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, TEST_MESSAGE)
+  ok, signed_message = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, domain, selector, \
+    rsa_private_key, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, message)
   (handle error) if ok != PDKIM_OK
 ```
 And to verify a message, call:
@@ -328,7 +330,7 @@ The count of PDKIM_VERIFY_FAIL:       0
 The count of PDKIM_VERIFY_PASS:       1
 ------------------------------------------------------------
 ```
-And you'll need a fake domain lookup routine for this test to work. Notice the third parameter above, ":fake\_domain\_lookup." That tells the lib to use fake\_domain\_lookup() method rather than the default "pdkim\_dkim\_public\_key\_lookup" method for the public key lookup:
+And you'll need a fake domain lookup routine for this test to work. Notice the optional third parameter above, ":fake\_domain\_lookup." That tells the lib to use fake\_domain\_lookup() method rather than the default "pdkim\_dkim\_public\_key\_lookup" method for the public key lookup:
 ```ruby
   def fake_domain_lookup(name)
     rsa_private_key
