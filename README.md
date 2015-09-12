@@ -54,33 +54,33 @@ The library implements all the calls needed to sign emails and verify signatures
 ##HOW DOES DKIM WORK?
 The gem accepts an array of lines that form an email, and add a DKIM "signature." For example, a simple email may look like this:
 ```smtp
-From: Tom Kistner <tom@duncanthrax.net><rsa_private_key
-X-Folded-Header: line one<rsa_private_key
-line two<rsa_private_key
-To: PDKIM<rsa_private_key
-Subject: PDKIM Test<rsa_private_key
-<rsa_private_key
-Test 3,4<rsa_private_key
-Heute bug ich, morgen fix ich.<rsa_private_key
+From: Tom Kistner <tom@duncanthrax.net><cr><lf>
+X-Folded-Header: line one<cr><lf>
+line two<cr><lf>
+To: PDKIM<cr><lf>
+Subject: PDKIM Test<cr><lf>
+<cr><lf>
+Test 3,4<cr><lf>
+Heute bug ich, morgen fix ich.<cr><lf>
 ```
 
 After the signing method is called, a DKIM header is added to the email, preceeding the part of the email that is being signed. The result may look something like this:
 ```smtp
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple;<rsa_private_key
-d=duncanthrax.net; s=cheezburger; h=Subject:To:From;<rsa_private_key
-	bh=TYfjX+U7VNSWkCdJ6jK/zo8Xze+WTNzPpy5l/ra8X+c=;<rsa_private_key
-b=oe15Ft/x+EMYgPgfQPxJViYOpNUd3GHPVWq4LmHFIBsm5bokL5TPLWaG7X3iX8ALY91bdag2FIhsLVdNIg9ZDHvtnHYZmcl9r76n0JJG/XszO8iH6vWjZ9smjPDQuDHT8NB5UOUl2S6/M5+6dzdkbAwcrQ5W/cKsl/PYzofzVhA=;<rsa_private_key
-From: Tom Kistner <tom@duncanthrax.net><rsa_private_key
-X-Folded-Header: line one<rsa_private_key
-line two<rsa_private_key
-To: PDKIM<rsa_private_key
-Subject: PDKIM Test<rsa_private_key
-<rsa_private_key
-Test 3,4<rsa_private_key
-Heute bug ich, morgen fix ich.<rsa_private_key
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple;<cr><lf>
+d=duncanthrax.net; s=cheezburger; h=Subject:To:From;<cr><lf>
+	bh=TYfjX+U7VNSWkCdJ6jK/zo8Xze+WTNzPpy5l/ra8X+c=;<cr><lf>
+	b=oe15Ft/x+EMYgPgfQPxJViYOpNUd3GHPVWq4LmHFIBsm5bokL5TPLWaG7X3iX8ALY91bdag2FIhsLVdNIg9ZDHvtnHYZmcl9r76n0JJG/XszO8iH6vWjZ9smjPDQuDHT8NB5UOUl2S6/M5+6dzdkbAwcrQ5W/cKsl/PYzofzVhA=;<cr><lf>
+From: Tom Kistner <tom@duncanthrax.net><cr><lf>
+X-Folded-Header: line one<cr><lf>
+line two<cr><lf>
+To: PDKIM<cr><lf>
+Subject: PDKIM Test<cr><lf>
+<cr><lf>
+Test 3,4<cr><lf>
+Heute bug ich, morgen fix ich.<cr><lf>
 ```
 
-The Ruby gem stores the messages as an array of lines, with the ```<rsa_private_key``` (hereafter CRLF) removed. The CRLF is added back when the message is reconstituted. Note that CRLF is a constant defined by this gem.
+The Ruby gem stores the messages as an array of lines, with the ```<cr><lf>``` (hereafter CRLF) removed. The CRLF is added back when the message is reconstituted. Note that CRLF is a constant defined by this gem.
 
 The DKIM signature consists of basically two parts: a hash of the body (the original email), and a hash to sign the email. The body hash (represented by bh) guarantees that the email cannot be modified without detection, and the signing hash (represented by b) guarantees that the email comes from the sender it preports to come from (represented by d). Take into account that there may be multiple DKIM signatures on any given email representing different servers the email has passed through.
 
@@ -128,23 +128,20 @@ FA0nM8cHuN/VLKjjcrJUK47lZEOsjLv+qTl0i0Lp6giq
 -----END RSA PRIVATE KEY-----
 EOT
 ```
-
-The private key is stored is a safe place where only authorized software can access it (usually owned by root with its permissions set to 400).
-
 A sample public key looks like this:
 ```
-  "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M23lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo6iBksRhIeSsTL94EbUJ625i0Lqg4i6NVQIDAQAB;
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5+utIbbfbpssvW0TboF73Seos
++1ijdPFGwc/z8Yu12cpjBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76
+M23lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo6iBksRhIeSsTL94
+EbUJ625i0Lqg4i6NVQIDAQAB
+-----END PUBLIC KEY-----
 ```
-The Ruby gem stores the public key is an array like this (the formatting is for looks only):  
+but it's stored into the server's DNS TXT record like this (in Ruby):
 ```ruby
-rsa_public_key =
-  ["v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB",
-  "gQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cp",
-  "jBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M2",
-  "3lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo",
-  "6iBksRhIeSsTL94EbUJ625i0Lqg4i6NVQIDAQAB;"]
+rsa_private_key = "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M23lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo6iBksRhIeSsTL94EbUJ625i0Lqg4i6NVQIDAQAB;"
 ```
-The public key is stored in the server's DNS records, and retrieved by the gem's verifcation process. Note that the lines of the key are not terminated with CRLF when joined up.
+The public key is retrieved by the gem's verification process.
 
 A couple of other things needed for testing are
 A test message:
@@ -168,6 +165,8 @@ A selector:
 ```ruby
 selector = "cheezburger"
 ```
+DKIM keys are stored on the sending server's DNS under the name ```selector._domainkey.domain.top-level-domain```. For example, DKIM looks for a public key for the test data above in the server's DNS TXT records with a name ```cheezburger._domainkey.duncanthrax.net```. A recommended practice is to rotate selectors by creating new ones and deleting old ones (once enough time has gone by for all the email signed with old selectors will have been verified). Google creates selectors like ```20120113```, i.e., date related.
+
 
 ##HOW DO I GENERATE THE DKIM KEYS WITH OPENSSL?
 The easiest way to create a set of DKIM keys is using OpenSSL in 7 easy steps as follows:
@@ -220,32 +219,31 @@ Signing produces only one signature. The fourth call signs and retrieves the sig
 ```ruby
 ok, signatures = pdkim_feed_finish(ctx)
 (handle error) if ok!=PDKIM_OK
- signature = [signatures[0][:signature]]
+signature = [signatures[0][:signature]]
 ```
 NOTE: If you want to see what's in a signature, just use:
 ```ruby
 puts signature.inspect
 ```
-or better yet,
+or better yet (you'll have to install the pretty_inspect gem),
 ```ruby
 puts signature.pretty_inspect
 ```
-
 To create the finished email, just concatenate the two:
 ```ruby
 signed_message = signature + CRLF + message.join(CRLF) + CRLF
 ````
 WARNING: Don't omit the trailing CRLF or the message will not be properly formed, and will not verify at the receiving end.
 
-The fifth (and last) call releases the context. This is an important step because if the context is not released, it will be a memory leak. You can be sure this call is made by using a "begin ... ensure ... end" structure in Ruby, or just be sure that if you bail out on an error, you make this call first.
+The fifth (and last) call releases the context. This is an important step because if the context is not released, it will be a memory leak. You can be sure this call is made by using a ```begin ... ensure ... end``` structure in Ruby, or just be sure that if you bail out on an error, you make this call first.
 ```ruby
 pdkim_free_ctx(ctx)
 ```
 The code above should generate the DKIM signature:
 ```
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple; d=duncanthrax.net; s=cheezburger;
-h=Subject:To:From; bh=+oeSNE7b9Ka6Gdh9ItFGX3J6Wacjc/JxAUaId7ON0T0=;
-b=Ap6DcX3x2MEoj1E3KBow7NF/2g5CnUoqkt0hgqJ0DufuOsFAPLl0tYA+yYIoCp8Acn/BJkjVYY+WQ7mlSUJfrZEZYIq1P+BZgBdP+Z+g3vrK2zEJchvwpnP0+xKniIktxT2WRQOoH3HBb/5Z1AhtuNfPEoE+kZN22Gksto4bqdg=;
+	h=Subject:To:From; bh=+oeSNE7b9Ka6Gdh9ItFGX3J6Wacjc/JxAUaId7ON0T0=;
+	b=Ap6DcX3x2MEoj1E3KBow7NF/2g5CnUoqkt0hgqJ0DufuOsFAPLl0tYA+yYIoCp8Acn/BJkjVYY+WQ7mlSUJfrZEZYIq1P+BZgBdP+Z+g3vrK2zEJchvwpnP0+xKniIktxT2WRQOoH3HBb/5Z1AhtuNfPEoE+kZN22Gksto4bqdg=;
 ```
 That's the complete signing cycle.
 
@@ -256,7 +254,7 @@ The verify process is similar to the signing process. Initialize, feed, finish, 
 The first call serves to initialize the verifying process, and pass one choice to the initialization method. Also, the block on this call is required because PDKIM uses it to resolve public key requests for each of the signatures in the message (there may be more than one). Here we ignore the name (which in this case is "cheezburger.\_domainkey.duncanthrax.com", i.e., ready to be looked up with "pdkim\_dkim\_public\_key\_lookup(name)") and just return our test data because we know we only have one signiture in the test message.
 ```ruby
 ctx = pdkim_init_verify(PDKIM_INPUT_NORMAL) do |name|
-  rsa_public_key.join("")
+  rsa_public_key
 end
 ```
 In a real method, we would probably use:
@@ -333,7 +331,7 @@ The count of PDKIM_VERIFY_PASS:       1
 And you'll need a fake domain lookup routine for this test to work. Notice the third parameter above, ":fake\_domain\_lookup." That tells the lib to use fake\_domain\_lookup() method rather than the default "pdkim\_dkim\_public\_key\_lookup" method for the public key lookup:
 ```ruby
   def fake_domain_lookup(name)
-    rsa_private_key.join("")
+    rsa_private_key
   end
 ```
 That's the complete sign/verify cycle using the short way.
@@ -341,7 +339,9 @@ That's the complete sign/verify cycle using the short way.
 
 #METHOD CALLS
 ```
-This is a sample of the aray of signatures (hashes) that comes out of the signing/verifying methods. Some fields shown here are only in one or the other.
+This is a sample of the aray of signatures (hashes) that comes out
+of the signing/verifying methods. Some fields shown here are only
+in one or the other.
 
 Sample of signatures array with one signature:
     [
@@ -396,7 +396,7 @@ Initialize context for signing.
   mode
     PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
     input is used, the lib will deflate double-dots at
-    the start of atline to a single dot, and it will
+    the start of a line to a single dot, and it will
     stop processing input when a line with and single
     dot is received (Excess input will simply be ignored).
 
@@ -434,7 +434,7 @@ Initialize context for verification.
   mode
     PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
     input is used, the lib will deflate double-dots at
-    the start of atline to a single dot, and it will
+    the start of a line to a single dot, and it will
     stop processing input when a line with and single
     dot is received (Excess input will simply be ignored).
 
@@ -483,7 +483,8 @@ Returns: nil
 
 
 ```
-ok = pdkim_set_optional(ctx, sign_headers, identity, canon_headers, canon_body, bodylength, algo, created, expires)
+ok = pdkim_set_optional(ctx, sign_headers, identity, canon_headers, \
+  canon_body, bodylength, algo, created, expires)
 
 OPTIONAL: Set additional optional signing options. If you do
 not use this function, sensible defaults (see below) are used.
@@ -584,14 +585,15 @@ Don't forget to call this or your application will "leak" memory.
 
 
 ```
-ok = pdkim_sign_an_email(mode, domain, selector, rsa_private_key, canon_headers, canon_body, unsigned_message)
+ok = pdkim_sign_an_email(mode, domain, selector, rsa_private_key, \
+  canon_headers, canon_body, unsigned_message)
 
 Call a single function to sign an email message.
 
   mode
     PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
     input is used, the lib will deflate double-dots at
-    the start of atline to a single dot, and it will
+    the start of a line to a single dot, and it will
     stop processing input when a line with and single
     dot is received (Excess input will simply be ignored).
 
@@ -647,7 +649,7 @@ Call a single function to sign an email message.
   mode
     PDKIM_INPUT_NORMAL or PDKIM_INPUT_SMTP. When SMTP
     input is used, the lib will deflate double-dots at
-    the start of atline to a single dot, and it will
+    the start of a line to a single dot, and it will
     stop processing input when a line with and single
     dot is received (Excess input will simply be ignored).
 
