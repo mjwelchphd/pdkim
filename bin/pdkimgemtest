@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 require 'pdkim'
 
-RSA_PRIVKEY = <<EOT
+RSA_PRIVATE_KEY = <<EOT
 -----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb
 5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M23lIuI5slJ4QLA0UznGxfHd
@@ -18,6 +18,8 @@ gCd0Y/DIDgyTOCbML+UCQQClbgAoYnIpbTUklWH00Z1xr+Y95BOjb4lyjyIF98B2
 FA0nM8cHuN/VLKjjcrJUK47lZEOsjLv+qTl0i0Lp6giq
 -----END RSA PRIVATE KEY-----
 EOT
+
+RSA_PUBLIC_KEY_DKIM = "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cpjBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M23lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo6iBksRhIeSsTL94EbUJ625i0Lqg4i6NVQIDAQAB;"
 
 DOMAIN = "duncanthrax.net"
 SELECTOR = "cheezburger"
@@ -37,15 +39,6 @@ TEST_MESSAGE = [
 #DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/simple; d=duncanthrax.net; s=cheezburger;
 #	h=Subject:To:From; bh=+oeSNE7b9Ka6Gdh9ItFGX3J6Wacjc/JxAUaId7ON0T0=;
 #	b=Ap6DcX3x2MEoj1E3KBow7NF/2g5CnUoqkt0hgqJ0DufuOsFAPLl0tYA+yYIoCp8Acn/BJkjVYY+WQ7mlSUJfrZEZYIq1P+BZgBdP+Z+g3vrK2zEJchvwpnP0+xKniIktxT2WRQOoH3HBb/5Z1AhtuNfPEoE+kZN22Gksto4bqdg=;
-
-# A DKIM public key record, as it usually resides in a DNS TXT record (the lines can be run together--this is neat-nik format):
-DNS_TEST_RECORD = [
-  "v=DKIM1; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB",
-  "gQC5+utIbbfbpssvW0TboF73Seos+1ijdPFGwc/z8Yu12cp",
-  "jBvRb5/qRJd83XCySRs0QkK1zWx4soPffbtyJ9TU5mO76M2",
-  "3lIuI5slJ4QLA0UznGxfHdfXpK9qRnmG6A4HRHC9B93pjTo",
-  "6iBksRhIeSsTL94EbUJ625i0Lqg4i6NVQIDAQAB;"
-]
 
 class PdkimTest
 
@@ -87,7 +80,7 @@ class PdkimTest
 
   def test1
     # ---------- SIGN ----------
-    ctx = pdkim_init_sign(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVKEY)
+    ctx = pdkim_init_sign(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVATE_KEY)
 #    ok = pdkim_set_debug_stream(ctx, 2) # 2 --> STDERR
     ok = pdkim_set_optional(ctx, nil, nil, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, -1, PDKIM_ALGO_RSA_SHA256, 0, 0)
     TEST_MESSAGE.each do |line| 
@@ -102,7 +95,7 @@ class PdkimTest
     # the block on this call is mandatory, and handles the DNS lookup
     # to get the domain's public key
     ctx = pdkim_init_verify(PDKIM_INPUT_NORMAL) do |name|
-      DNS_TEST_RECORD.join("") # return 'answer'
+      RSA_PUBLIC_KEY_DKIM
     end
     signed_message.each do |line|
       ok = pdkim_feed(ctx, line+CRLF, line.length+2)
@@ -117,13 +110,13 @@ class PdkimTest
   end
 
   def test2(signed_message)
-    ok, signed_message = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVKEY, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, TEST_MESSAGE)
+    ok, signed_message = pdkim_sign_an_email(PDKIM_INPUT_NORMAL, DOMAIN, SELECTOR, RSA_PRIVATE_KEY, PDKIM_CANON_SIMPLE, PDKIM_CANON_SIMPLE, TEST_MESSAGE)
     ok, counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message, :fake_domain_lookup)
     display("TEST2", TEST_MESSAGE, signed_message, counts)
   end
   
   def fake_domain_lookup(name)
-    DNS_TEST_RECORD.join("")
+    RSA_PUBLIC_KEY_DKIM
   end
 
 end
