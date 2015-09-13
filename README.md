@@ -316,18 +316,15 @@ To sign a message, call:
 ```
 And to verify a message, call:
 ```ruby
-  ok, counts = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message, :fake_domain_lookup)
+  ok, signatures = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message, :fake_domain_lookup)
   (handle error) if ok != PDKIM_OK
 ```
-The verify method returns a "count" array of 4 values:
+The verify method returns an array of signatures: (only 1 shown here)
 ```
 ------------------------------------------------------------
----- The verification counts of the DKIM headers:          -
+---- The signature of the DKIM header:                     -
 ------------------------------------------------------------
-The count of PDKIM_VERIFY_NONE:       0
-The count of PDKIM_VERIFY_INVALID:    0
-The count of PDKIM_VERIFY_FAIL:       0
-The count of PDKIM_VERIFY_PASS:       1
+- duncanthrax.net                     PDKIM_VERIFY_PASS    -
 ------------------------------------------------------------
 ```
 And you'll need a fake domain lookup routine for this test to work. Notice the optional third parameter above, ":fake\_domain\_lookup." That tells the lib to use fake\_domain\_lookup() method rather than the default "pdkim\_dkim\_public\_key\_lookup" method for the public key lookup:
