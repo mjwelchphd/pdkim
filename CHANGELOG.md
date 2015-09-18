@@ -1,3 +1,7 @@
+0.6
+-----
+* Changed a FIX2SHORT to FIX2INT in pdkimglue.c in order to be compatible with Ruby 1.9.1.
+
 0.5
 -----
 * Fixed a problem with 'pdkim_dkim_public_key_lookup' where if a key was split

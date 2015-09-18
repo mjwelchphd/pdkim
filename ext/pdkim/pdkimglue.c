@@ -58,7 +58,7 @@ static VALUE object_ruby_pdkim_set_debug_stream(VALUE rb_self, VALUE rb_ctx, VAL
     return Qtrue;
   }
   else if RB_TYPE_P(rb_file_id, T_FIXNUM) {
-    debug = fdopen(FIX2SHORT(rb_file_id),"a");
+    debug = fdopen(FIX2INT(rb_file_id),"a");
     pdkim_set_debug_stream(ctx,debug);
     return Qtrue;
   }

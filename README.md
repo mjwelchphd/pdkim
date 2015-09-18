@@ -2,20 +2,20 @@
 
 
 ##GENERAL
-PDKIM - a RFC4871 (DKIM) implementation
-http://duncanthrax.net/pdkim/
+PDKIM - a RFC4871 (DKIM) implementation<br/>
+http://duncanthrax.net/pdkim/<br/>
 Copyright (C) 2009  Tom Kistner <tom@duncanthrax.net>
 
-Includes code from the PolarSSL project.
-http://polarssl.org
-Copyright (C) 2009  Paul Bakker <polarssl_maintainer@polarssl.org>
+Includes code from the PolarSSL project.<br/>
+http://polarssl.org<br/>
+Copyright (C) 2009  Paul Bakker <polarssl_maintainer@polarssl.org><br/>
 Copyright (C) 2006-2008 Christophe Devine
 
-This gem (C) 2015 Michael J. Welch, Ph.D. <mjwelchphd@gmail.com>
-Source code can be found on GitHub: https://github.com/mjwelchphd/pdkim
+This gem (C) 2015 Michael J. Welch, Ph.D. <mjwelchphd@gmail.com><br/>
+Source code can be found on GitHub: https://github.com/mjwelchphd/pdkim<br/>
 The Linux gem can be found on RubyGems.org: https://rubygems.org/gems/pdkim
 
-PDKIM is the pacakge that Exim4 uses for DKIM support.
+PDKIM is the package that Exim4 uses for DKIM support.
 
 
 ##CONTACT ME
@@ -320,7 +320,7 @@ To sign a message, call:
 ```
 And to verify a message, call:
 ```ruby
-  ok, signatures = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message, :fake_domain_lookup)
+  ok, signatures = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, signed_message)
   (handle error) if ok != PDKIM_OK
 ```
 The verify method returns an array of signatures: (only 1 shown here)
@@ -330,12 +330,6 @@ The verify method returns an array of signatures: (only 1 shown here)
 ------------------------------------------------------------
 - duncanthrax.net                     PDKIM_VERIFY_PASS    -
 ------------------------------------------------------------
-```
-And you'll need a fake domain lookup routine for this test to work. Notice the optional third parameter above, ":fake\_domain\_lookup." That tells the lib to use fake\_domain\_lookup() method rather than the default "pdkim\_dkim\_public\_key\_lookup" method for the public key lookup:
-```ruby
-  def fake_domain_lookup(name)
-    rsa_private_key
-  end
 ```
 That's the complete sign/verify cycle using the short way.
 
@@ -567,42 +561,7 @@ Returns:
      Sign only returns 1 signature, but verify will return 1 signature
      for each DKIM header in the email being verified.
 
-     Returns an array of hashes (only 1 for sign) with the signatures in them
-     [
-       {
-         "error"=>0, # 0 (PDKIM_OK) for success or a PDKIM_ERR_* constant
-         "signature"=>nil,
-         "version"=>1,
-         "algo"=>0,
-         "canon_headers"=>0,
-         "canon_body"=>0,
-         "querymethod"=>0,
-         "selector"=>"cheezburger",
-         "domain"=>"duncanthrax.net",
-         "identity"=>nil,
-         "created"=>0,
-         "expires"=>0,
-         "bodylength"=>-1,
-         "headernames"=>"Subject:To:From",
-         "copiedheaders"=>nil,
-         "sigdata"=>"\xA1\xEDy\x16\xDF\xF1\xF8C\x18\x80\xF8\x1F@\xFCIV&\x0E\xA4\xD5 ...",
-         "bodyhash"=>"M\x87\xE3_\xE5;T\xD4\x96\x90'I\xEA2\xBF\xCE\x8F\x17\xCD\xEF ...",
-         "signature_header"=>nil,
-         "verify_status"=>3,
-         "verify_ext_status"=>0,
-         "pubkey"=>{
-           "version"=>"DKIM1",
-           "granularity"=>"*",
-           "hashes"=>nil,
-           "keytype"=>"rsa",
-           "srvtype"=>"*",
-           "notes"=>nil,
-           "key"=>"0\x81\x9F0\r\x06\t*\x86H\x86\xF7\r\x01\x01\x01\x05\x00\x03\x81\x8D ...",
-           "testing"=>0,
-           "no_subdomaining"=>0
-         }
-       }
-     ]
+     Returns an array of hashes (only 1 for sign) with the signatures in them.
 ```
 
 ```
