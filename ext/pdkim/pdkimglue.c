@@ -5,7 +5,7 @@
 /* These are, with the exception of 'object_ruby_pdkim_init_verify' and it's callback
  * method 'query_dns_text', just glue routines for the C PDKIM library. */
  
-static VALUE pdkim_request_public_key = NULL;
+static VALUE pdkim_request_public_key = (VALUE)NULL;
  
 static VALUE object_ruby_pdkim_init_sign(VALUE rb_self, VALUE rb_mode, VALUE rb_domain, VALUE rb_selector, VALUE rb_rsa_privkey) {
   int input_type = FIX2INT(rb_mode);
