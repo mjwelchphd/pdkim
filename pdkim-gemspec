@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Gem::Specification.new do |spec|
   spec.name          = 'pdkim'
   spec.version       = '0.8'
@@ -28,37 +27,3 @@ PDKIM is the pacakge that Exim4 uses for DKIM support."
   spec.require_paths = [ 'lib', 'ext' ]
   spec.license       = 'MIT'
 end
-=======
-Gem::Specification.new do |spec|
-  spec.name          = 'pdkim'
-  spec.version       = '0.7'
-  spec.date          = '2015-10-30'
-  spec.summary       = "A Ruby Gem wrapping Tom Kistner's PDKIM package."
-  spec.authors       = ["Michael J. Welch, Ph.D."]
-  spec.description   = "PDKIM - a RFC4871 (DKIM) implementation
-http://duncanthrax.net/pdkim/
-Copyright (C) 2009      Tom Kistner <tom@duncanthrax.net>
-
-Includes code from the PolarSSL project.
-http://polarssl.org
-Copyright (C) 2009      Paul Bakker <polarssl_maintainer@polarssl.org>
-Copyright (C) 2006-2008 Christophe Devine
-
-This gem (C) 2015 Michael J. Welch, Ph.D. <mjwelchphd@gmail.com>
-Source code can be found on GitHub: https://github.com/mjwelchphd/pdkim
-
-Test by running pdkimgemtest after installing.
-
-PDKIM is the pacakge that Exim4 uses for DKIM support."
-  spec.email         = 'mjwelchphd@gmail.com'
-  spec.homepage      = 'http://www.czarmail.com'
-  spec.author        = 'Michael J. Welch, Ph.D.'
-  spec.bindir        = 'bin'
-  spec.executable    = 'pdkimgemtest'
-  spec.files         = Dir['lib/**/*.rb'] + Dir['bin/*'] + Dir['ext/**/*.so'] + Dir['ext/**/*.dll']
-  spec.platform      = Gem::Platform::CURRENT
-  spec.require_paths = [ 'lib', 'ext' ]
-  spec.homepage      = 'http://rubygems.org/gems/paypkg'
-  spec.license       = 'MIT'
-end
->>>>>>> cc86330969a96d57b6f596567aff06ed1fea99cc
