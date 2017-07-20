@@ -15,17 +15,51 @@ cd ../..
 
 # Build and install the gem
 gem build pdkim-gemspec
+<<<<<<< HEAD
+sudo gem install pdkim-0.8.gem
+=======
 sudo gem install pdkim-0.7-x86_64-linux.gem
+>>>>>>> cc86330969a96d57b6f596567aff06ed1fea99cc
 
 # test the gem by running the installed test program
 pdkimgemtest
 
 ruby -Ilib -Iext bin/pdkimgemtest
 
+<<<<<<< HEAD
+#----------------------------------------
+
+# To push up to GitHub
+git remote add origin https://github.com/mjwelchphd/pdkim.git
+
+# UPDATE THE PDKIM GEM SRC
+# CHANGE VERSION AND DATE 
+# UPDATE CHANGELOG
+# UPDATE README
+# BUILD THE GEM
+# UPDATE VERSION BELOW IN THE gem push COMMAND
+# COMMIT CHANGES IN GIT BEFORE PUSHING!
+git push -u origin master
+
+#----------------------------------------
+
+# To upload the gem to rubygems.org
+gem push pdkim-0.8.gem
+
+sudo gem install pdkim
+
+#----------------------------------------
+
+# Other useful commands
+#git remote add origin https://github.com/mjwelchphd/pdkim.git
+#git push -u origin master
+#gem push pdkim-0.8.gem
+=======
 # Other useful commands
 #git remote add origin https://github.com/mjwelchphd/pdkim.git
 #git push -u origin master
 #gem push pdkim-0.7-x86_64-linux.gem
+>>>>>>> cc86330969a96d57b6f596567aff06ed1fea99cc
 
 #git@github.com:mjwelchphd/pdkim.git
 
