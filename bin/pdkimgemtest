@@ -1,5 +1,6 @@
 #! /usr/bin/env ruby
 require 'pdkim'
+require 'yaml'
 
 RSA_PRIVATE_KEY = <<EOT
 -----BEGIN RSA PRIVATE KEY-----
@@ -35,83 +36,6 @@ TEST_MESSAGE = [
   "",
   "Test 1, 2, 3, 4",
   "This is a simple test of Ruby PDKIM."
-]
-
-GMAIL_MESSAGE = [
-  "Return-Path: <mjwelchphd@gmail.com>",
-  "Delivered-To: <mike@czarmail.com>",
-  "Received: from mail.czarmail.com ([127.0.0.1])",
-  "by mail.czarmail.com (Dovecot) with LMTP id HPnFC1749FXScwAAk+HNSA",
-  "for <mike@czarmail.com>; Sun, 13 Sep 2015 04:15:26 +0000",
-  "Received: from mail-ob0-f182.google.com ([209.85.214.182])",
-  "by mail.czarmail.com with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)",
-  "(Exim 4.84)",
-  "(envelope-from <mjwelchphd@gmail.com>)",
-  "id 1ZayhK-0007yo-4x",
-  "for mike@czarmail.com; Sun, 13 Sep 2015 04:15:26 +0000",
-  "Received: by obbbh8 with SMTP id bh8so87258669obb.0",
-  "        for <mike@czarmail.com>; Sat, 12 Sep 2015 21:15:20 -0700 (PDT)",
-  "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;",
-  "        d=gmail.com; s=20120113;",
-  "        h=message-id:date:from:user-agent:mime-version:to:subject",
-  "         :content-type;",
-  "        bh=b5sxcaTHTBZk9dR5EZlyI7ZLry+IqWAEczMHBzJlJl0=;",
-  "        b=DUUrLSYNT9tZvOiBPq4f8K651dqnLuGIOiDjGB7I0kVFfuIW6Nb3jWlbeDhPcOychV",
-  "         al8DptP2iNm+iMWHi9KcEA7ZzN78IoNYVYVDTzfmDnDXSnh2u0tPPgk9fnuLUWSJf3D+",
-  "         XP9hMvJxhSE52icxf7dhhGI2x+Qw4+Bb9dNpi75tej1ycYMHO6bCYwOmQsYjGh+3F2ui",
-  "         y28BBkj+UXTEC7EwkcUj6lHEnYb5SMHN6lYmt/TMWza1ZyqbmvHOSxpRjXD9n4nhrwvi",
-  "         HQZacUSYIFzho7dtThNcNFklyNQxqFWTBqsQUFyjZKr2JhcnZe11RVilaVFLkUwK2Tcy",
-  "         uIHw==",
-  "X-Received: by 10.182.33.73 with SMTP id p9mr5546532obi.73.1442117720794;",
-  "        Sat, 12 Sep 2015 21:15:20 -0700 (PDT)",
-  "Received: from [192.168.1.2] ([96.251.113.83])",
-  "        by smtp.googlemail.com with ESMTPSA id f3sm3789496obm.18.2015.09.12.21.15.19",
-  "        for <mike@czarmail.com>",
-  "        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);",
-  "        Sat, 12 Sep 2015 21:15:19 -0700 (PDT)",
-  "Message-ID: <55F4F854.3060104@gmail.com>",
-  "Date: Sat, 12 Sep 2015 21:15:16 -0700",
-  "From: \"Michael J. Welch, Ph.D.\" <mjwelchphd@gmail.com>",
-  "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Thunderbird/31.2.0",
-  "MIME-Version: 1.0",
-  "To: Czar Mike <mike@czarmail.com>",
-  "Subject: Test of the Ruby Gem for PDKIM",
-  "Content-Type: multipart/alternative;",
-  " boundary=\"------------020802090102030008090109\"",
-  "CzarMail-ID: efb5d62ea0b98820bb04017b4a2334a0",
-  "",
-  "This is a multi-part message in MIME format.",
-  "--------------020802090102030008090109",
-  "Content-Type: text/plain; charset=utf-8; format=flowed",
-  "Content-Transfer-Encoding: 7bit",
-  "",
-  "This is a test of the pdkim gem. This email contains some HTML.",
-  "",
-  "Here is some *bold* type.",
-  "",
-  "Here is a link to Czar Mail <www.czarmail.com>.",
-  "",
-  "",
-  "--------------020802090102030008090109",
-  "Content-Type: text/html; charset=utf-8",
-  "Content-Transfer-Encoding: 7bit",
-  "",
-  "<html>",
-  "  <head>",
-  "",
-  "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">",
-  "  </head>",
-  "  <body bgcolor=\"#FFFFFF\" text=\"#000000\">",
-  "    This is a test of the pdkim gem. This email contains some HTML.<br>",
-  "    <br>",
-  "    Here is some <b>bold</b> type.<br>",
-  "    <br>",
-  "    Here is a link to <a href=\"www.czarmail.com\">Czar Mail</a>.<br>",
-  "    <br>",
-  "  </body>",
-  "</html>",
-  "",
-  "--------------020802090102030008090109--"
 ]
 
 # the dkim header expected from this message is:
@@ -209,8 +133,10 @@ class PdkimTest
 
   # If Google ever removes the selector in this test email, this will cease to function
   def test3
-    ok, signatures = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, GMAIL_MESSAGE)
-    display("TEST3 -- VERIFYING A GMAIL SIGNATURE", nil, GMAIL_MESSAGE, signatures)
+    mail = YAML::load_file("bin/1ZsMk0-0iglmo-E9")
+    gmail = mail[:data][:text]
+    ok, signatures = pdkim_verify_an_email(PDKIM_INPUT_NORMAL, gmail)
+    display("TEST3 -- VERIFYING A GMAIL SIGNATURE", nil, gmail, signatures)
   end
 
 end

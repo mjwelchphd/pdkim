@@ -1,0 +1,98 @@
+--- !ruby/hash
+:id: 1ZsMk0-0iglmo-E9
+:time: '2015-10-31 03:22:04 +0000'
+:local_port: '25'
+:local_hostname: mail.tsarmail.org
+:remote_port: 35184
+:remote_hostname: mail-pa0-x232.google.com
+:remote_ip: 2607:f8b0:400e:c03::232
+:authenticated: 
+:encrypted: true
+:ehlo:
+  :value: " mail-pa0-x232.google.com"
+  :domain: google.com
+  :ip: 173.194.115.32
+:mailfrom:
+  :value: "<mjwelchphd@gmail.com>"
+  :accepted: true
+  :name: 
+  :url: mjwelchphd@gmail.com
+  :local_part: mjwelchphd
+  :domain: gmail.com
+  :czarmailclient: false
+  :owner_id: 
+  :mx:
+  - gmail-smtp-in.l.google.com
+  - alt1.gmail-smtp-in.l.google.com
+  - alt2.gmail-smtp-in.l.google.com
+  - alt3.gmail-smtp-in.l.google.com
+  - alt4.gmail-smtp-in.l.google.com
+  :ip: 173.194.199.27
+  :spamhaus: false
+  :barracuda: false
+  :live: true
+:rcptto:
+- :value: "<coco@tsarmail.org>"
+  :accepted: true
+  :name: 
+  :url: coco@tsarmail.org
+  :local_part: coco
+  :domain: tsarmail.org
+  :czarmailclient: false
+  :owner_id: 
+  :senderisfriend: false
+  :mail_type: X
+:data:
+  :accepted: false
+  :value: 
+  :text:
+  - 'Received: by pasz6 with SMTP id z6so90936190pas.2'
+  - "        for <coco@tsarmail.org>; Fri, 30 Oct 2015 20:22:04 -0700 (PDT)"
+  - 'DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;'
+  - "        d=gmail.com; s=20120113;"
+  - "        h=message-id:date:from:user-agent:mime-version:to:subject"
+  - "         :content-type:content-transfer-encoding;"
+  - "        bh=Z2jCW0avVIbUOQuL6QZlOhhVpMa2bHX2/SOpDUKV+Ec=;"
+  - "        b=fdIuma9zlWqC1+tAAtXHXGybhB7Luki6veKE8SimmQL5BfWV5xU9NS7E0QApG2+rgp"
+  - "         QQ6VRwy8M9ATjBn3BJvXN462HGsfihPL5DwIr8N1PWhy7wkVJxFvAI/mcbGZlYZE4p99"
+  - "         CXVPAYt5lBKzeMFYNF79umSIjhc2HRyE0TFyLxzrH9DlryeQ6ngDJ6VKbPsWRpG0rLS2"
+  - "         H8Xs2t6l5wOd22oDcE0k4x3aU6MDMw6/0enU6KuVgmlnjsIemFk0NvpTRVKcWlluDmjI"
+  - "         OQ1x6oFNvwtxTpEC6OP89kXM6Fnc0mwn9PJSzzJ/gxmcxpNbmFZ25yHGy48TiA4jTC1y"
+  - "         JLeA=="
+  - 'X-Received: by 10.66.147.136 with SMTP id tk8mr12368633pab.37.1446261724525;'
+  - "        Fri, 30 Oct 2015 20:22:04 -0700 (PDT)"
+  - 'Return-Path: <mjwelchphd@gmail.com>'
+  - 'Received: from [192.168.1.2] ([96.251.113.83])'
+  - "        by smtp.googlemail.com with ESMTPSA id or3sm10805021pbb.56.2015.10.30.20.22.02"
+  - "        for <coco@tsarmail.org>"
+  - "        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);"
+  - "        Fri, 30 Oct 2015 20:22:03 -0700 (PDT)"
+  - 'Message-ID: <563433D8.9020306@gmail.com>'
+  - 'Date: Fri, 30 Oct 2015 20:22:00 -0700'
+  - 'From: "Michael J. Welch, Ph.D." <mjwelchphd@gmail.com>'
+  - 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Thunderbird/31.2.0'
+  - 'MIME-Version: 1.0'
+  - 'To: coco@tsarmail.org'
+  - 'Subject: test tsar'
+  - 'Content-Type: text/plain; charset=utf-8; format=flowed'
+  - 'Content-Transfer-Encoding: 7bit'
+  - ''
+  - Coco is Sir Bitealot.
+  :headers:
+    :received: from [192.168.1.2] ([96.251.113.83])        by smtp.googlemail.com
+      with ESMTPSA id or3sm10805021pbb.56.2015.10.30.20.22.02        for <coco@tsarmail.org>        (version=TLSv1.2
+      cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);        Fri, 30 Oct 2015 20:22:03
+      -0700 (PDT)
+    :dkim_signature: v=1; a=rsa-sha256; c=relaxed/relaxed;        d=gmail.com; s=20120113;        h=message-id:date:from:user-agent:mime-version:to:subject         :content-type:content-transfer-encoding;        bh=Z2jCW0avVIbUOQuL6QZlOhhVpMa2bHX2/SOpDUKV+Ec=;        b=fdIuma9zlWqC1+tAAtXHXGybhB7Luki6veKE8SimmQL5BfWV5xU9NS7E0QApG2+rgp         QQ6VRwy8M9ATjBn3BJvXN462HGsfihPL5DwIr8N1PWhy7wkVJxFvAI/mcbGZlYZE4p99         CXVPAYt5lBKzeMFYNF79umSIjhc2HRyE0TFyLxzrH9DlryeQ6ngDJ6VKbPsWRpG0rLS2         H8Xs2t6l5wOd22oDcE0k4x3aU6MDMw6/0enU6KuVgmlnjsIemFk0NvpTRVKcWlluDmjI         OQ1x6oFNvwtxTpEC6OP89kXM6Fnc0mwn9PJSzzJ/gxmcxpNbmFZ25yHGy48TiA4jTC1y         JLeA==
+    :x_received: by 10.66.147.136 with SMTP id tk8mr12368633pab.37.1446261724525;        Fri,
+      30 Oct 2015 20:22:04 -0700 (PDT)
+    :return_path: "<mjwelchphd@gmail.com>"
+    :message_id: "<563433D8.9020306@gmail.com>"
+    :date: Fri, 30 Oct 2015 20:22:00 -0700
+    :from: '"Michael J. Welch, Ph.D." <mjwelchphd@gmail.com>'
+    :user_agent: Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Thunderbird/31.2.0
+    :mime_version: '1.0'
+    :to: coco@tsarmail.org
+    :subject: test tsar
+    :content_type: text/plain; charset=utf-8; format=flowed
+    :content_transfer_encoding: 7bit
