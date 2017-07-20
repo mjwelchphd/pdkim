@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = 'pdkim'
-  spec.version       = '0.8'
+  spec.version       = '0.9'
   spec.date          = '2017-07-20'
   spec.summary       = "A Ruby Gem wrapping Tom Kistner's PDKIM package."
   spec.authors       = ["Tom Kistner", "Michael J. Welch, Ph.D."]
